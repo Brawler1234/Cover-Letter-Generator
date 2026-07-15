@@ -1,5 +1,7 @@
 # Cover Letter Generator
 
+**Live demo:** https://cover-letter-generator-qyob.onrender.com
+
 A small web app that turns a job posting and your own background into a personalized, non-generic cover letter — then checks how well it lines up with the job posting's key terms.
 
 ## What it does
