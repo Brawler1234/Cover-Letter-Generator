@@ -4,13 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cover Letter Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Courier+Prime&family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main>
-    <h1>Cover Letter Generator</h1>
-    <p class="subtitle">Fill in the details below and Claude will draft a personalized cover letter.</p>
+  <header class="hero">
+    <div class="hero-inner">
+      <h1 class="kicker">Cover Letter Generator</h1>
+      <p class="crossed-out">
+        Dear Hiring Manager, I am excited to apply for this position.<span class="margin-note">cut this.</span>
+      </p>
+      <p class="tagline">Sound like you actually wrote it.</p>
+      <p class="hero-subtitle">Paste the job posting, tell Claude the real story, get a letter that doesn't sound like everyone else's.</p>
+    </div>
+  </header>
 
+  <main>
     <form id="letter-form">
       <label for="job-posting">Job posting text</label>
       <textarea id="job-posting" rows="8" placeholder="Paste the full job posting here" required></textarea>
@@ -32,28 +46,30 @@
 
     <p id="status" class="status" hidden></p>
 
-    <section id="result-section" hidden>
-      <label for="result">Generated cover letter <span class="optional">(editable)</span></label>
-      <textarea id="result" rows="16"></textarea>
-    </section>
+    <div class="output-panel">
+      <section id="result-section" hidden>
+        <label for="result">Generated cover letter <span class="optional">(editable)</span></label>
+        <textarea id="result" rows="16"></textarea>
+      </section>
 
-    <section id="keyword-section" hidden>
-      <div class="keyword-header">
-        <h2>Keyword Match</h2>
-        <button type="button" id="recheck-btn">Recheck keywords</button>
-      </div>
-      <p id="keyword-summary" class="keyword-summary"></p>
-      <div class="keyword-columns">
-        <div>
-          <h3>Found in your letter</h3>
-          <ul id="keywords-found" class="keyword-list"></ul>
+      <section id="keyword-section" hidden>
+        <div class="keyword-header">
+          <h2>Keyword Match</h2>
+          <button type="button" id="recheck-btn">Recheck keywords</button>
         </div>
-        <div>
-          <h3>Missing from your letter</h3>
-          <ul id="keywords-missing" class="keyword-list"></ul>
+        <p id="keyword-summary" class="keyword-summary"></p>
+        <div class="keyword-columns">
+          <div>
+            <h3>Found in your letter</h3>
+            <ul id="keywords-found" class="keyword-list"></ul>
+          </div>
+          <div>
+            <h3>Missing from your letter</h3>
+            <ul id="keywords-missing" class="keyword-list"></ul>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </main>
 
   <script src="script.js"></script>
