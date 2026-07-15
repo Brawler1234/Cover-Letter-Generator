@@ -7,6 +7,13 @@ const Anthropic = require('@anthropic-ai/sdk');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Render (and most hosting platforms) sit in front of the app as a reverse
+// proxy. Without this, every visitor would appear to share Render's proxy
+// IP, and the rate limiter below would treat all visitors as one — this
+// tells Express to trust the first proxy hop and read the real visitor IP
+// from the X-Forwarded-For header instead.
+app.set('trust proxy', 1);
+
 // Each visitor (identified by IP) gets this many /generate calls per window
 // before being blocked — protects against runaway API costs.
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
