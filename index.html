@@ -36,6 +36,24 @@
       <label for="result">Generated cover letter <span class="optional">(editable)</span></label>
       <textarea id="result" rows="16"></textarea>
     </section>
+
+    <section id="keyword-section" hidden>
+      <div class="keyword-header">
+        <h2>Keyword Match</h2>
+        <button type="button" id="recheck-btn">Recheck keywords</button>
+      </div>
+      <p id="keyword-summary" class="keyword-summary"></p>
+      <div class="keyword-columns">
+        <div>
+          <h3>Found in your letter</h3>
+          <ul id="keywords-found" class="keyword-list"></ul>
+        </div>
+        <div>
+          <h3>Missing from your letter</h3>
+          <ul id="keywords-missing" class="keyword-list"></ul>
+        </div>
+      </div>
+    </section>
   </main>
 
   <script src="script.js"></script>

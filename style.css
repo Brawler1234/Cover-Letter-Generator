@@ -109,3 +109,84 @@ button:disabled {
 #result {
   min-height: 320px;
 }
+
+#keyword-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.keyword-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.keyword-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+#recheck-btn {
+  background: var(--surface);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+#recheck-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.keyword-summary {
+  color: var(--muted);
+  margin: 0.5rem 0 1rem;
+}
+
+.keyword-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.keyword-columns h3 {
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem;
+  color: var(--muted);
+}
+
+.keyword-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.keyword-list li {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+#keywords-found li {
+  background: #e3f1e9;
+  color: var(--accent-hover);
+  border: 1px solid #bfe0cd;
+}
+
+#keywords-missing li {
+  background: #fbeceb;
+  color: #b3392c;
+  border: 1px solid #f0cfcc;
+}
+
+@media (max-width: 520px) {
+  .keyword-columns {
+    grid-template-columns: 1fr;
+  }
+}
