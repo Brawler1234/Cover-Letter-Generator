@@ -1,10 +1,27 @@
 :root {
-  --pad-yellow: #f5efc0;
-  --paper-white: #fffdf3;
-  --ink: #1b2a4a;
-  --pen-red: #b0223b;
-  --rule-blue: #5c7c99;
-  --graphite: #6b6355;
+  /* ---- Color system ---- */
+  --bg: #0b0b14;
+  --surface: #16161f;
+  --border: #25262f;
+  --text: #f2f2f5;
+  --muted: #8e90a2;
+  --accent: #6366f1;
+  --accent-2: #ec4899;
+  --error: #f87171;
+
+  /* ---- Spacing scale (4px base) ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ---- Radius scale ---- */
+  --radius-sm: 6px;
+  --radius-md: 8px;
 }
 
 * {
@@ -13,180 +30,394 @@
 
 body {
   margin: 0;
-  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-color: var(--pad-yellow);
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 31px,
-    rgba(92, 124, 153, 0.22) 32px
-  );
-  color: var(--ink);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: var(--bg);
+  /* Signature texture: a sparse, faint tile of small bars echoing the
+     redaction-block motif — page-wide cohesion, not a hero-only decoration.
+     Each rect carries its own 3% opacity, so this is genuinely subtle by
+     construction, not something layered on top with an extra CSS opacity. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Crect x='15' y='20' width='30' height='8' rx='2' fill='white' opacity='0.03' transform='rotate(-6 30 24)'/%3E%3Crect x='80' y='60' width='22' height='8' rx='2' fill='white' opacity='0.03' transform='rotate(4 91 64)'/%3E%3Crect x='30' y='100' width='26' height='8' rx='2' fill='white' opacity='0.03' transform='rotate(-3 43 104)'/%3E%3C/svg%3E");
+  color: var(--text);
   line-height: 1.5;
-  position: relative;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: calc(50% - 384px);
-  width: 2px;
-  background: rgba(176, 34, 59, 0.3);
-  pointer-events: none;
-}
-
-@media (max-width: 820px) {
-  body::before {
-    display: none;
-  }
-}
-
-main {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
-  position: relative;
-}
-
-/* ---- Hero: the signature element — the interface performs the edit ---- */
+/* ================= Hero ================= */
 .hero {
-  padding: 4rem 1.5rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-16) 1.5rem var(--space-12);
+  background-image: radial-gradient(ellipse 800px 480px at 50% -10%, rgba(99, 102, 241, 0.22), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 40px);
 }
 
 .hero-inner {
-  max-width: 720px;
+  /* Wider than the functional content column below — deliberately, so a
+     much bigger display headline has room to breathe without wrapping
+     awkwardly. The margins on either side are intentional framing, not
+     leftover default space. */
+  max-width: 880px;
   margin: 0 auto;
+  position: relative;
 }
 
-.kicker {
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--graphite);
-  margin: 0 0 1.75rem;
+/* Two-column hero on wide screens: text on the left, example card as a
+   sidebar roughly aligned with the headline. Pure CSS repositioning via
+   named grid areas — the DOM order stays eyebrow/headline/subtitle/
+   example-card/badges, so under the breakpoint this just falls back to
+   plain stacking in that same, already-correct order. */
+@media (min-width: 900px) {
+  .hero-inner {
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    grid-template-areas:
+      "eyebrow  card"
+      "headline card"
+      "subtitle card"
+      "badges   card";
+    column-gap: var(--space-12);
+    align-items: start;
+  }
+
+  .eyebrow {
+    grid-area: eyebrow;
+  }
+
+  .hero-headline {
+    grid-area: headline;
+  }
+
+  .hero-subtitle {
+    grid-area: subtitle;
+  }
+
+  .tech-badges {
+    grid-area: badges;
+  }
+
+  /* Higher-specificity selector (not just .example-card) so this reliably
+     wins over the base rule's margin shorthand regardless of source order —
+     the earlier bug here was exactly this: equal specificity + later source
+     position let the base rule's `margin: 0 0 var(--space-6)` silently
+     zero out margin-top no matter what this block said. */
+  .hero-inner .example-card {
+    grid-area: card;
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin-top: 3.6rem;
+    margin-bottom: 0;
+  }
 }
 
-.crossed-out {
-  font-family: "Courier Prime", monospace;
-  font-size: 1rem;
-  color: var(--graphite);
-  text-decoration-line: line-through;
-  text-decoration-color: var(--pen-red);
-  text-decoration-thickness: 3px;
-  text-decoration-skip-ink: none;
-  margin: 0 0 0.75rem;
+.eyebrow,
+.example-card,
+.hero-headline,
+.hero-subtitle,
+.tech-badges {
+  opacity: 0;
+  animation: fade-in-up 0.5s ease forwards;
 }
 
-.margin-note {
-  font-family: "Caveat", cursive;
-  font-weight: 600;
-  font-size: 1.35rem;
-  color: var(--pen-red);
-  text-decoration: none;
+.eyebrow {
+  /* Now reads as an actual, legible title (the app's name), not a small
+     uppercase tag — normal case, tighter tracking, full text color. */
+  animation-delay: 0s;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0 0 var(--space-6);
+}
+
+/* Concrete before/after example — replaces the earlier abstract redaction
+   line. Clearly labeled EXAMPLE and boxed as a card, so there's no
+   ambiguity that this is illustrative content, not part of the live form. */
+.example-card {
+  /* Now reads as supporting proof of the headline's claim, not the opening
+     hook — comes after headline + subtitle, tighter to the badge row below
+     it than to the claim above (same "supporting" tier as the badges). */
+  animation-delay: 0.55s;
   display: inline-block;
-  margin-left: 0.85rem;
-  transform: rotate(-4deg);
+  max-width: 560px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  margin: 0 0 var(--space-6);
 }
 
-.tagline {
-  font-family: "Instrument Serif", Georgia, serif;
-  font-size: 3rem;
-  line-height: 1.12;
-  font-weight: 400;
-  color: var(--ink);
-  margin: 0.25rem 0 1rem;
+.example-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin: 0 0 var(--space-3);
+}
+
+.example-before {
+  font-size: 1rem;
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--muted);
+  text-decoration-thickness: 1.5px;
+  margin: 0 0 var(--space-2);
+}
+
+.example-arrow {
+  font-size: 1.1rem;
+  color: var(--accent);
+  margin: 0 0 var(--space-2);
+  line-height: 1;
+}
+
+.example-after {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0;
+}
+
+.hero-headline {
+  animation-delay: 0.15s;
+  font-size: 5.25rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  margin: 0 0 var(--space-6);
+}
+
+.accent-word {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .hero-subtitle {
-  color: var(--graphite);
-  font-size: 1.05rem;
-  margin: 0;
+  /* Larger bottom margin than the other hero gaps — this is the tier
+     boundary: "the claim" (kicker/headline/subtitle) ends here, "the
+     proof" (example card + badges) begins below. */
+  animation-delay: 0.35s;
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: var(--muted);
+  margin: 0 0 var(--space-12);
   max-width: 46ch;
 }
 
-/* ---- Form card ---- */
+.tech-badges {
+  animation-delay: 0.75s;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================= Layout ================= */
+main {
+  /* Narrower than the hero on purpose — this is the width that actually
+     reads best for form labels, textareas, and body text, not a leftover
+     default. The hero gets more room specifically because display type
+     needs it; functional content doesn't. */
+  max-width: 680px;
+  margin: 0 auto;
+  padding: var(--space-4) 1.5rem var(--space-16);
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 var(--space-6);
+}
+
+.section-label::before,
+label[for="result"]::before,
+.keyword-header h2::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ================= Design system: cards ================= */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-8);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
 form {
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
-  background: var(--paper-white);
-  border: 1px solid rgba(92, 124, 153, 0.3);
-  border-radius: 6px;
-  padding: 2rem;
-  box-shadow: 0 1px 2px rgba(27, 42, 74, 0.06), 0 4px 12px rgba(27, 42, 74, 0.06);
-  transform: rotate(-0.15deg);
+  gap: var(--space-6);
+  counter-reset: field;
 }
 
-label {
+form label {
+  counter-increment: field;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   font-weight: 600;
-  margin-bottom: 0.4rem;
-  display: block;
-  color: var(--ink);
+  margin-bottom: var(--space-2);
+  font-size: 0.9rem;
+}
+
+form label::before {
+  content: counter(field, decimal-leading-zero);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Small tasteful touch: the field's numbered marker fills solid when you're
+   actually working in that field, tying the marker to interaction state. */
+form label:has(+ textarea:focus)::before,
+form label:has(+ input:focus)::before {
+  background: var(--accent);
+  color: #fff;
 }
 
 .optional {
   font-weight: 400;
-  color: var(--graphite);
+  color: var(--muted);
 }
 
 textarea,
 input[type="text"] {
   width: 100%;
-  padding: 0.65rem 0.8rem;
-  border: 1px solid rgba(92, 124, 153, 0.35);
-  border-radius: 4px;
-  background: var(--pad-yellow);
-  color: var(--ink);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
   font-family: inherit;
   font-size: 0.95rem;
   resize: vertical;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 textarea:hover,
 input[type="text"]:hover {
-  border-color: var(--rule-blue);
+  border-color: var(--muted);
 }
 
 textarea:not(:placeholder-shown),
 input[type="text"]:not(:placeholder-shown) {
-  border-color: var(--ink);
+  border-color: var(--text);
 }
 
 textarea:focus,
 input[type="text"]:focus {
-  outline: 2px solid var(--pen-red);
-  outline-offset: 1px;
-  border-color: var(--pen-red);
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25), 0 0 20px rgba(99, 102, 241, 0.12);
 }
 
-button {
+/* ================= Design system: buttons ================= */
+.btn-primary {
   align-self: flex-start;
-  background: var(--pen-red);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #fff;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-sm);
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
   position: relative;
-  box-shadow: 0 2px 6px rgba(176, 34, 59, 0.25);
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  animation: breathe-glow 3s ease-in-out infinite;
 }
 
-button:hover:not(:disabled) {
-  background: #8f1c30;
-  box-shadow: 0 3px 10px rgba(176, 34, 59, 0.32);
+@keyframes breathe-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
+  }
+
+  50% {
+    box-shadow: 0 4px 26px rgba(99, 102, 241, 0.4);
+  }
 }
 
-button:disabled {
+.btn-primary:hover:not(:disabled) {
+  animation-play-state: paused;
+  transform: scale(1.02);
+  box-shadow: 0 6px 28px rgba(99, 102, 241, 0.4);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
   box-shadow: none;
+  animation: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Loading spinner — driven purely by the existing :disabled state that
@@ -217,43 +448,49 @@ button:disabled {
 }
 
 .status {
-  margin-top: 1.25rem;
-  color: var(--graphite);
+  margin-top: var(--space-4);
+  color: var(--muted);
 }
 
 .status.error {
-  color: var(--pen-red);
+  color: var(--error);
   font-weight: 600;
 }
 
-/* ---- Output zone: result + keyword match grouped as one visual unit.
-   The card chrome only appears once there's something to show inside. ---- */
+/* ================= Output zone ================= */
 .output-panel {
-  margin-top: 3.25rem;
+  margin-top: var(--space-12);
 }
 
 .output-panel:has(#result-section:not([hidden])) {
-  padding: 2rem;
-  background: var(--paper-white);
-  border: 1px solid rgba(92, 124, 153, 0.3);
-  border-top: 3px solid var(--pen-red);
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(27, 42, 74, 0.06), 0 4px 12px rgba(27, 42, 74, 0.06);
-  transform: rotate(0.15deg);
+  padding: var(--space-8);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.output-panel:has(#result-section:not([hidden])):hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.4);
 }
 
 label[for="result"] {
-  font-family: "Instrument Serif", Georgia, serif;
-  font-size: 1.6rem;
-  font-weight: 400;
-  color: var(--ink);
-  display: block;
-  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: var(--space-4);
 }
 
 label[for="result"] .optional {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 1rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.78rem;
 }
 
 #result {
@@ -261,61 +498,74 @@ label[for="result"] .optional {
 }
 
 #keyword-section {
-  margin-top: 2.5rem;
-  padding-top: 1.75rem;
-  border-top: 1px solid rgba(92, 124, 153, 0.3);
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
 }
 
 .keyword-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .keyword-header h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 0.78rem;
+  font-weight: 600;
   text-transform: uppercase;
-  color: var(--graphite);
-  font-family: "IBM Plex Sans", sans-serif;
-}
-
-#recheck-btn {
-  background: var(--paper-white);
-  color: var(--pen-red);
-  border: 1px solid var(--pen-red);
-  padding: 0.4rem 0.9rem;
-  font-size: 0.85rem;
-  box-shadow: none;
-}
-
-#recheck-btn:hover:not(:disabled) {
-  background: var(--pen-red);
-  color: #fff;
-  box-shadow: none;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-family: inherit;
 }
 
 .keyword-summary {
-  color: var(--graphite);
-  margin: 0.6rem 0 1.1rem;
+  color: var(--muted);
+  margin: var(--space-3) 0 var(--space-4);
+  font-size: 0.9rem;
 }
 
 .keyword-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: var(--space-6);
 }
 
 .keyword-columns h3 {
-  font-size: 0.8rem;
-  margin: 0 0 0.6rem;
-  color: var(--graphite);
-  font-weight: 700;
+  font-size: 0.75rem;
+  margin: 0 0 var(--space-2);
+  color: var(--muted);
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/* ================= Design system: badges ================= */
+.badge,
+.keyword-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.badge-accent {
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: var(--accent);
 }
 
 .keyword-list {
@@ -324,20 +574,13 @@ label[for="result"] .optional {
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.keyword-list li {
-  padding: 0.3rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  gap: var(--space-2);
 }
 
 #keywords-found li {
-  background: rgba(176, 34, 59, 0.08);
-  color: var(--pen-red);
-  border: 1px solid var(--pen-red);
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(99, 102, 241, 0.35);
 }
 
 #keywords-found li::before {
@@ -346,8 +589,8 @@ label[for="result"] .optional {
 
 #keywords-missing li {
   background: transparent;
-  color: var(--graphite);
-  border: 1px solid rgba(92, 124, 153, 0.4);
+  color: var(--muted);
+  border: 1px solid var(--border);
 }
 
 #keywords-missing li::before {
@@ -355,19 +598,11 @@ label[for="result"] .optional {
 }
 
 @media (max-width: 640px) {
-  .tagline {
-    font-size: 2.1rem;
+  .hero-headline {
+    font-size: 2.75rem;
   }
 
   .keyword-columns {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 520px) {
-  .margin-note {
-    display: block;
-    margin-left: 0;
-    margin-top: 0.35rem;
   }
 }

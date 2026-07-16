@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Courier+Prime&family=IBM+Plex+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
     rel="stylesheet"
   />
   <link rel="stylesheet" href="style.css" />
@@ -15,17 +15,31 @@
 <body>
   <header class="hero">
     <div class="hero-inner">
-      <h1 class="kicker">Cover Letter Generator</h1>
-      <p class="crossed-out">
-        Dear Hiring Manager, I am excited to apply for this position.<span class="margin-note">cut this.</span>
-      </p>
-      <p class="tagline">Sound like you actually wrote it.</p>
-      <p class="hero-subtitle">Paste the job posting, tell Claude the real story, get a letter that doesn't sound like everyone else's.</p>
+      <p class="eyebrow">Cover Letter Generator</p>
+
+      <h1 class="hero-headline">Write a cover letter that sounds like <span class="accent-word">you</span>.</h1>
+      <p class="hero-subtitle">Paste the job posting, tell Claude the real story — get something that doesn't read like everyone else's application.</p>
+
+      <div class="example-card">
+        <p class="example-label">Example</p>
+        <p class="example-before">I am a results-driven professional with a proven track record of success.</p>
+        <p class="example-arrow">&#8595;</p>
+        <p class="example-after">&ldquo;I noticed a recurring problem in my last role and built a small tool to fix it.&rdquo;</p>
+      </div>
+
+      <div class="tech-badges">
+        <span class="badge badge-outline">Claude Sonnet 5</span>
+        <span class="badge badge-outline">Node.js</span>
+        <span class="badge badge-outline">Express</span>
+        <span class="badge badge-outline">Rate-limited</span>
+      </div>
     </div>
   </header>
 
   <main>
-    <form id="letter-form">
+    <p class="section-label">The details</p>
+
+    <form id="letter-form" class="card">
       <label for="job-posting">Job posting text</label>
       <textarea id="job-posting" rows="8" placeholder="Paste the full job posting here" required></textarea>
 
@@ -41,7 +55,7 @@
       <label for="avoid">Things to avoid mentioning <span class="optional">(optional)</span></label>
       <input type="text" id="avoid" placeholder="e.g. a previous employer, a gap in employment" />
 
-      <button type="submit" id="submit-btn">Generate Cover Letter</button>
+      <button type="submit" id="submit-btn" class="btn-primary">Generate Cover Letter</button>
     </form>
 
     <p id="status" class="status" hidden></p>
@@ -55,7 +69,7 @@
       <section id="keyword-section" hidden>
         <div class="keyword-header">
           <h2>Keyword Match</h2>
-          <button type="button" id="recheck-btn">Recheck keywords</button>
+          <button type="button" id="recheck-btn" class="btn-secondary">Recheck keywords</button>
         </div>
         <p id="keyword-summary" class="keyword-summary"></p>
         <div class="keyword-columns">
