@@ -67,7 +67,10 @@
       <label for="avoid">Things to avoid mentioning <span class="optional">(optional)</span></label>
       <input type="text" id="avoid" placeholder="e.g. a previous employer, a gap in employment" />
 
-      <button type="submit" id="submit-btn" class="btn-primary">Generate Cover Letter</button>
+      <div class="button-row">
+        <button type="submit" id="submit-btn" class="btn-primary">Generate Cover Letter</button>
+        <button type="submit" id="generate-resume-btn" class="btn-primary">Generate Resume</button>
+      </div>
     </form>
 
     <p id="status" class="status" hidden></p>
@@ -76,6 +79,11 @@
       <section id="result-section" hidden>
         <label for="result">Generated cover letter <span class="optional">(editable)</span></label>
         <textarea id="result" rows="16"></textarea>
+      </section>
+
+      <section id="resume-section" hidden>
+        <label for="resume-result">Generated resume <span class="optional">(editable)</span></label>
+        <textarea id="resume-result" rows="20"></textarea>
       </section>
 
       <section id="keyword-section" hidden>

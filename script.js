@@ -1,8 +1,11 @@
 const form = document.getElementById('letter-form');
 const submitBtn = document.getElementById('submit-btn');
+const resumeBtn = document.getElementById('generate-resume-btn');
 const statusEl = document.getElementById('status');
 const resultSection = document.getElementById('result-section');
 const resultEl = document.getElementById('result');
+const resumeSection = document.getElementById('resume-section');
+const resumeResultEl = document.getElementById('resume-result');
 const keywordSection = document.getElementById('keyword-section');
 const keywordSummaryEl = document.getElementById('keyword-summary');
 const keywordsFoundEl = document.getElementById('keywords-found');
@@ -149,9 +152,9 @@ resumeInput.addEventListener('change', async () => {
 
 resumeRemoveBtn.addEventListener('click', clearResume);
 
-form.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
+// Shared by both submit buttons — same form fields feed either endpoint,
+// only the target endpoint and what happens with the response differ.
+async function runGeneration({ endpoint, loadingMessage, onSuccess }) {
   const jobPosting = document.getElementById('job-posting').value.trim();
   const background = document.getElementById('background').value.trim();
   const motivation = document.getElementById('motivation').value.trim();
@@ -164,12 +167,11 @@ form.addEventListener('submit', async (event) => {
   }
 
   submitBtn.disabled = true;
-  resultSection.hidden = true;
-  keywordSection.hidden = true;
-  setStatus('Generating your cover letter...');
+  resumeBtn.disabled = true;
+  setStatus(loadingMessage);
 
   try {
-    const response = await fetch('/generate', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -188,14 +190,44 @@ form.addEventListener('submit', async (event) => {
       throw new Error(data.error || 'Something went wrong.');
     }
 
-    resultEl.value = data.letter;
-    resultSection.hidden = false;
-    renderKeywordMatch(jobPosting, data.letter);
+    onSuccess(data, jobPosting);
     setStatus('');
   } catch (err) {
     setStatus(err.message, true);
   } finally {
     submitBtn.disabled = false;
+    resumeBtn.disabled = false;
+  }
+}
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  // Both buttons are type="submit" on the same form, so native `required`
+  // field validation runs for either one — event.submitter tells us which
+  // was actually clicked.
+  if (event.submitter && event.submitter.id === 'generate-resume-btn') {
+    resumeSection.hidden = true;
+    runGeneration({
+      endpoint: '/generate-resume',
+      loadingMessage: 'Generating your resume...',
+      onSuccess: (data) => {
+        resumeResultEl.value = data.resume;
+        resumeSection.hidden = false;
+      },
+    });
+  } else {
+    resultSection.hidden = true;
+    keywordSection.hidden = true;
+    runGeneration({
+      endpoint: '/generate',
+      loadingMessage: 'Generating your cover letter...',
+      onSuccess: (data, jobPosting) => {
+        resultEl.value = data.letter;
+        resultSection.hidden = false;
+        renderKeywordMatch(jobPosting, data.letter);
+      },
+    });
   }
 });
 

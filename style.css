@@ -262,6 +262,7 @@ main {
 
 .section-label::before,
 label[for="result"]::before,
+label[for="resume-result"]::before,
 .keyword-header h2::before {
   content: "";
   width: 6px;
@@ -423,6 +424,12 @@ input[type="text"]:focus {
 }
 
 /* ================= Design system: buttons ================= */
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
 .btn-primary {
   align-self: flex-start;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
@@ -492,12 +499,14 @@ input[type="text"]:focus {
 
 /* Loading spinner — driven purely by the existing :disabled state that
    script.js already sets during generation. No JS changes needed. */
-#submit-btn:disabled {
+#submit-btn:disabled,
+#generate-resume-btn:disabled {
   opacity: 0.75;
   padding-left: 2.6rem;
 }
 
-#submit-btn:disabled::before {
+#submit-btn:disabled::before,
+#generate-resume-btn:disabled::before {
   content: "";
   position: absolute;
   left: 1.1rem;
@@ -532,7 +541,8 @@ input[type="text"]:focus {
   margin-top: var(--space-12);
 }
 
-.output-panel:has(#result-section:not([hidden])) {
+.output-panel:has(#result-section:not([hidden])),
+.output-panel:has(#resume-section:not([hidden])) {
   padding: var(--space-8);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -540,12 +550,22 @@ input[type="text"]:focus {
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
-.output-panel:has(#result-section:not([hidden])):hover {
+.output-panel:has(#result-section:not([hidden])):hover,
+.output-panel:has(#resume-section:not([hidden])):hover {
   transform: translateY(-2px);
   border-color: rgba(99, 102, 241, 0.4);
 }
 
-label[for="result"] {
+/* Cover letter and resume outputs stack with their own breathing room when
+   both are visible at once (independent generations, same output panel). */
+#result-section:not([hidden]) ~ #resume-section:not([hidden]) {
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--border);
+}
+
+label[for="result"],
+label[for="resume-result"] {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -557,13 +577,15 @@ label[for="result"] {
   margin-bottom: var(--space-4);
 }
 
-label[for="result"] .optional {
+label[for="result"] .optional,
+label[for="resume-result"] .optional {
   text-transform: none;
   letter-spacing: normal;
   font-size: 0.78rem;
 }
 
-#result {
+#result,
+#resume-result {
   min-height: 320px;
 }
 
