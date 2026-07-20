@@ -96,11 +96,9 @@ body {
     grid-area: badges;
   }
 
-  /* Higher-specificity selector (not just .example-card) so this reliably
-     wins over the base rule's margin shorthand regardless of source order —
-     the earlier bug here was exactly this: equal specificity + later source
-     position let the base rule's `margin: 0 0 var(--space-6)` silently
-     zero out margin-top no matter what this block said. */
+  /* Higher-specificity selector so this reliably wins over the base rule's
+     margin shorthand regardless of source order (learned that the hard way
+     the first time this bug showed up here). */
   .hero-inner .example-card {
     grid-area: card;
     display: block;
@@ -137,8 +135,7 @@ body {
    ambiguity that this is illustrative content, not part of the live form. */
 .example-card {
   /* Now reads as supporting proof of the headline's claim, not the opening
-     hook — comes after headline + subtitle, tighter to the badge row below
-     it than to the claim above (same "supporting" tier as the badges). */
+     hook — comes after headline + subtitle. */
   animation-delay: 0.55s;
   display: inline-block;
   max-width: 560px;
@@ -179,6 +176,18 @@ body {
   font-weight: 500;
   color: var(--text);
   margin: 0;
+}
+
+/* Keyword-match mention, merged into the same card as the example instead
+   of a separate boxed card — a subtle top divider marks it as a distinct
+   idea without introducing a second competing surface. Plain sentence, no
+   placeholder badges — those read as unlabeled fake data. */
+.keyword-preview-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
 }
 
 .hero-headline {
@@ -319,6 +328,67 @@ form label:has(+ input:focus)::before {
 .optional {
   font-weight: 400;
   color: var(--muted);
+}
+
+/* Resume upload — an alternative way to fill the "Your background" field,
+   not a new numbered step. Reuses the same surface/border/radius tokens as
+   everything else, so it reads as part of the same system, not a bolted-on
+   widget. */
+.resume-upload {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: calc(-1 * var(--space-3));
+}
+
+.field-or {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.resume-dropzone {
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.resume-dropzone:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.resume-filename {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.resume-remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.resume-remove-btn:hover {
+  color: var(--error);
 }
 
 textarea,

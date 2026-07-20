@@ -25,6 +25,8 @@
         <p class="example-before">I am a results-driven professional with a proven track record of success.</p>
         <p class="example-arrow">&#8595;</p>
         <p class="example-after">&ldquo;I noticed a recurring problem in my last role and built a small tool to fix it.&rdquo;</p>
+
+        <p class="keyword-preview-label">Also checks your letter against the job posting's key terms &mdash; see what's covered and what's missing.</p>
       </div>
 
       <div class="tech-badges">
@@ -44,7 +46,17 @@
       <textarea id="job-posting" rows="8" placeholder="Paste the full job posting here" required></textarea>
 
       <label for="background">Your background</label>
-      <textarea id="background" rows="8" placeholder="Summarize your relevant experience, skills, and history" required></textarea>
+      <textarea id="background" rows="8" placeholder="Summarize your relevant experience, skills, and history"></textarea>
+
+      <div class="resume-upload">
+        <span class="field-or">or</span>
+        <button type="button" id="resume-dropzone" class="resume-dropzone">Upload your resume <span class="optional">(PDF, max 5MB)</span></button>
+        <input type="file" id="resume-input" accept="application/pdf" hidden />
+        <p id="resume-filename" class="resume-filename" hidden>
+          <span id="resume-filename-text"></span>
+          <button type="button" id="resume-remove" class="resume-remove-btn" aria-label="Remove resume">&times;</button>
+        </p>
+      </div>
 
       <label for="motivation">Why this role/company interests you</label>
       <textarea id="motivation" rows="4" placeholder="What draws you to this role or company specifically?" required></textarea>

@@ -19,11 +19,15 @@ app.set('trust proxy', 1);
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const RATE_LIMIT_MAX_REQUESTS = 5;
 
+// Matches the frontend's own limit — a 5MB PDF becomes ~6.7MB once
+// base64-encoded, so the default 100kb JSON body limit has to grow to fit it.
+const MAX_RESUME_BYTES = 5 * 1024 * 1024;
+
 // Reads ANTHROPIC_API_KEY from the environment automatically — the key
 // never touches the frontend code.
 const client = new Anthropic();
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(__dirname));
 
 // Blocks a request BEFORE it reaches the route below once a visitor hits
@@ -40,10 +44,10 @@ const generateLimiter = rateLimit({
   },
 });
 
-function buildPrompt({ jobPosting, background, motivation, story, avoid }) {
+function buildPrompt({ jobPosting, background, motivation, story, avoid, hasResume }) {
   return `You are helping draft a personalized, specific cover letter. Avoid generic AI-sounding language entirely — no phrases like "results-driven," "passionate about," "proven track record," "dynamic team player," or opening with "I am excited to apply for."
 
-Use ONLY the specific details provided below. Do not invent achievements, numbers, or experiences not mentioned. If the provided details are thin in a section, keep that part brief and honest rather than padding it with generic claims.
+Use ONLY the specific details provided below${hasResume ? ', including the attached resume,' : ''}. Do not invent achievements, numbers, or experiences not mentioned. If the provided details are thin in a section, keep that part brief and honest rather than padding it with generic claims.
 
 Mirror 2-3 key phrases or priorities from the job posting naturally, without sounding like keyword-stuffing.
 
@@ -51,7 +55,7 @@ Job posting:
 ${jobPosting}
 
 Candidate background:
-${background}
+${background || (hasResume ? '(see attached resume)' : '')}
 
 Why this role/company interests them:
 ${motivation}
@@ -66,22 +70,51 @@ Write a cover letter, 250-350 words, in a natural, confident, first-person voice
 }
 
 app.post('/generate', generateLimiter, async (req, res) => {
-  const { jobPosting, background, motivation, story, avoid } = req.body || {};
+  const { jobPosting, background, motivation, story, avoid, resumeFile } = req.body || {};
 
-  if (!jobPosting || !background || !motivation || !story) {
+  const hasBackground = !!(background && background.trim());
+  const hasResume = !!(resumeFile && resumeFile.data);
+
+  if (!jobPosting || !motivation || !story || (!hasBackground && !hasResume)) {
     return res.status(400).json({
-      error: 'Please fill in the job posting, background, motivation, and story fields.',
+      error: 'Please fill in the job posting, motivation, and story fields, and provide your background as text or a resume upload.',
     });
   }
 
+  // Defense in depth — the frontend already checks the raw file size before
+  // encoding, but that check lives in JavaScript a visitor could bypass.
+  if (hasResume) {
+    const approxBytes = resumeFile.data.length * 0.75; // base64 -> ~raw bytes
+    if (approxBytes > MAX_RESUME_BYTES) {
+      return res.status(400).json({ error: 'Resume file is too large. Please upload a PDF under 5MB.' });
+    }
+  }
+
   try {
-    const prompt = buildPrompt({ jobPosting, background, motivation, story, avoid });
+    const prompt = buildPrompt({ jobPosting, background, motivation, story, avoid, hasResume });
+
+    // Claude reads PDFs natively as a document content block — no
+    // text-extraction library needed on our end. The document goes before
+    // the instructions, same convention the Claude API docs use.
+    const messageContent = hasResume
+      ? [
+          {
+            type: 'document',
+            source: {
+              type: 'base64',
+              media_type: 'application/pdf',
+              data: resumeFile.data,
+            },
+          },
+          { type: 'text', text: prompt },
+        ]
+      : prompt;
 
     const response = await client.messages.create({
       model: 'claude-sonnet-5',
       max_tokens: 2000,
       thinking: { type: 'disabled' },
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: messageContent }],
     });
 
     const textBlock = response.content.find((block) => block.type === 'text');
