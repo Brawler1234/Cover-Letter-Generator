@@ -589,6 +589,91 @@ label[for="resume-result"] .optional {
   min-height: 320px;
 }
 
+.resume-preview-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: var(--space-6) 0 var(--space-3);
+}
+
+.resume-preview-label .optional {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Deliberately a light "paper" card, not the site's dark surface — a resume
+   is a printed/shared document, not themed UI, and this doubles as an
+   accurate preview of what the downloaded PDF will look like. */
+.resume-preview {
+  background: #ffffff;
+  color: #1a1a1a;
+  border-radius: var(--radius-md);
+  padding: var(--space-8);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.resume-preview-empty {
+  color: #888;
+  font-style: italic;
+  margin: 0;
+}
+
+.resume-preview-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #111;
+  margin: 0 0 var(--space-1);
+}
+
+.resume-preview-contact {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0 0 var(--space-6);
+}
+
+.resume-preview-heading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #111;
+  margin: var(--space-5) 0 var(--space-2);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid #ddd;
+}
+
+.resume-preview-heading:first-of-type {
+  margin-top: 0;
+}
+
+.resume-body-text,
+.resume-skill-line,
+.resume-entry-title {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #222;
+  margin: var(--space-1) 0;
+}
+
+.resume-entry-title {
+  font-weight: 700;
+  color: #111;
+}
+
+.resume-bullets {
+  margin: var(--space-1) 0 var(--space-2);
+  padding-left: 1.1rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #222;
+}
+
+#download-resume-btn {
+  margin-top: var(--space-4);
+}
+
 #keyword-section {
   margin-top: var(--space-8);
   padding-top: var(--space-6);

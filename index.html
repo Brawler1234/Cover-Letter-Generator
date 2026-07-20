@@ -84,6 +84,11 @@
       <section id="resume-section" hidden>
         <label for="resume-result">Generated resume <span class="optional">(editable)</span></label>
         <textarea id="resume-result" rows="20"></textarea>
+
+        <p class="resume-preview-label">Formatted preview <span class="optional">(updates as you edit)</span></p>
+        <div id="resume-preview" class="resume-preview"></div>
+
+        <button type="button" id="download-resume-btn" class="btn-secondary" disabled>Download as PDF</button>
       </section>
 
       <section id="keyword-section" hidden>
@@ -106,6 +111,7 @@
     </div>
   </main>
 
+  <script src="vendor/jspdf.umd.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

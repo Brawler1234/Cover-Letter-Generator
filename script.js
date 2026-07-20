@@ -6,6 +6,8 @@ const resultSection = document.getElementById('result-section');
 const resultEl = document.getElementById('result');
 const resumeSection = document.getElementById('resume-section');
 const resumeResultEl = document.getElementById('resume-result');
+const resumePreviewEl = document.getElementById('resume-preview');
+const downloadResumeBtn = document.getElementById('download-resume-btn');
 const keywordSection = document.getElementById('keyword-section');
 const keywordSummaryEl = document.getElementById('keyword-summary');
 const keywordsFoundEl = document.getElementById('keywords-found');
@@ -92,6 +94,125 @@ function renderKeywordMatch(jobPostingText, letterText) {
 
   keywordSection.hidden = false;
 }
+
+// The fixed section headings the resume prompt is instructed to use — see
+// buildResumePrompt in server.js. Shared by the preview renderer and the
+// PDF generator below, so both read the resume the same way.
+const RESUME_HEADINGS = ['SUMMARY', 'SKILLS', 'PROJECTS', 'CERTIFICATIONS', 'EXPERIENCE', 'EDUCATION'];
+
+// Turns the resume textarea's plain text into { name, contactLine, sections }.
+// Content appearing before the first recognized heading (e.g. if a heading
+// got edited away) is captured under heading: '' so it still renders as
+// plain paragraphs instead of being silently dropped.
+function parseResumeText(text) {
+  const lines = text.split('\n');
+  let i = 0;
+  const skipBlank = () => {
+    while (i < lines.length && lines[i].trim() === '') i++;
+  };
+
+  skipBlank();
+  const name = (lines[i] || '').trim();
+  if (name) i++;
+  skipBlank();
+  const contactLine = (lines[i] || '').trim();
+  if (contactLine) i++;
+
+  const sections = [];
+  let current = null;
+  for (; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    if (RESUME_HEADINGS.includes(trimmed)) {
+      current = { heading: trimmed, body: [] };
+      sections.push(current);
+      continue;
+    }
+    if (!current) {
+      if (!trimmed) continue;
+      current = { heading: '', body: [] };
+      sections.push(current);
+    }
+    current.body.push(lines[i]);
+  }
+
+  return {
+    name,
+    contactLine,
+    sections: sections
+      .map((s) => ({ heading: s.heading, body: s.body.join('\n').trim() }))
+      .filter((s) => s.body),
+  };
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// SUMMARY renders as a plain paragraph; SKILLS bolds the "Category:" label
+// on each line; every other section (PROJECTS, CERTIFICATIONS, EXPERIENCE,
+// EDUCATION) treats "- " lines as bullets and any other line as a bold
+// entry title (job title, project name, degree line, etc).
+function renderResumeSectionBody(heading, body) {
+  const lines = body.split('\n').map((l) => l.trim()).filter(Boolean);
+
+  if (heading === 'SUMMARY' || !heading) {
+    return `<p class="resume-body-text">${escapeHtml(lines.join(' '))}</p>`;
+  }
+
+  if (heading === 'SKILLS') {
+    return lines
+      .map((line) => {
+        const idx = line.indexOf(':');
+        if (idx === -1) return `<p class="resume-skill-line">${escapeHtml(line)}</p>`;
+        const label = line.slice(0, idx + 1);
+        const rest = line.slice(idx + 1);
+        return `<p class="resume-skill-line"><strong>${escapeHtml(label)}</strong>${escapeHtml(rest)}</p>`;
+      })
+      .join('');
+  }
+
+  let html = '';
+  let bullets = [];
+  const flushBullets = () => {
+    if (bullets.length) {
+      html += `<ul class="resume-bullets">${bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('')}</ul>`;
+      bullets = [];
+    }
+  };
+  for (const line of lines) {
+    if (line.startsWith('- ') || line.startsWith('• ')) {
+      bullets.push(line.replace(/^[-•]\s*/, ''));
+    } else {
+      flushBullets();
+      html += `<p class="resume-entry-title">${escapeHtml(line)}</p>`;
+    }
+  }
+  flushBullets();
+  return html;
+}
+
+function renderResumePreview() {
+  const parsed = parseResumeText(resumeResultEl.value);
+  const hasContent = Boolean(parsed.name || parsed.sections.length);
+
+  downloadResumeBtn.disabled = !hasContent;
+
+  if (!hasContent) {
+    resumePreviewEl.innerHTML = '<p class="resume-preview-empty">Generate or write a resume above to see a formatted preview here.</p>';
+    return;
+  }
+
+  let html = '';
+  if (parsed.name) html += `<p class="resume-preview-name">${escapeHtml(parsed.name)}</p>`;
+  if (parsed.contactLine) html += `<p class="resume-preview-contact">${escapeHtml(parsed.contactLine)}</p>`;
+  for (const section of parsed.sections) {
+    if (section.heading) html += `<h3 class="resume-preview-heading">${escapeHtml(section.heading)}</h3>`;
+    html += renderResumeSectionBody(section.heading, section.body);
+  }
+  resumePreviewEl.innerHTML = html;
+}
+
+resumeResultEl.addEventListener('input', renderResumePreview);
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -214,6 +335,7 @@ form.addEventListener('submit', (event) => {
       onSuccess: (data) => {
         resumeResultEl.value = data.resume;
         resumeSection.hidden = false;
+        renderResumePreview();
       },
     });
   } else {
@@ -236,4 +358,140 @@ form.addEventListener('submit', (event) => {
 recheckBtn.addEventListener('click', () => {
   const jobPosting = document.getElementById('job-posting').value.trim();
   renderKeywordMatch(jobPosting, resultEl.value);
+});
+
+function slugifyResumeFilename(name) {
+  const slug = (name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `${slug || 'resume'}-resume.pdf`;
+}
+
+// Builds the downloadable PDF straight from the same parsed structure the
+// preview uses, so what you see in the preview is what you get in the file.
+// A4, ~19mm margins, Helvetica (jsPDF's built-in font — see the plan notes
+// on why we're not embedding Inter). Pagination is manual: jsPDF doesn't
+// paginate text on its own, so we track the vertical cursor and break the
+// page before content would overflow, reserving enough room before each
+// section heading that it never lands alone at the bottom of a page.
+function generateResumePdf() {
+  const parsed = parseResumeText(resumeResultEl.value);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 19;
+  const contentWidth = pageWidth - margin * 2;
+  let y = margin;
+
+  function ensureSpace(neededHeight) {
+    if (y + neededHeight > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+    }
+  }
+
+  // Name
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(19);
+  doc.setTextColor(17, 17, 17);
+  ensureSpace(8);
+  doc.text(parsed.name || 'Resume', margin, y);
+  y += 8;
+
+  // Contact line
+  if (parsed.contactLine) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(85, 85, 85);
+    ensureSpace(6);
+    doc.text(parsed.contactLine, margin, y);
+    y += 9;
+  } else {
+    y += 3;
+  }
+
+  for (const section of parsed.sections) {
+    const bodyLines = section.body.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (!bodyLines.length) continue;
+
+    if (section.heading) {
+      // Reserve room for the heading, its rule, and at least one line of
+      // content — otherwise a header could be drawn right at the bottom of
+      // a page with nothing under it until the next page.
+      ensureSpace(18);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(17, 17, 17);
+      doc.text(section.heading, margin, y);
+      y += 1.5;
+      doc.setDrawColor(204, 204, 204);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 5;
+    }
+
+    if (section.heading === 'SUMMARY' || !section.heading) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10.5);
+      doc.setTextColor(34, 34, 34);
+      const wrapped = doc.splitTextToSize(bodyLines.join(' '), contentWidth);
+      for (const line of wrapped) {
+        ensureSpace(5);
+        doc.text(line, margin, y);
+        y += 5;
+      }
+      y += 3;
+      continue;
+    }
+
+    for (const line of bodyLines) {
+      if (line.startsWith('- ') || line.startsWith('• ')) {
+        const bulletText = line.replace(/^[-•]\s*/, '');
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10.5);
+        doc.setTextColor(34, 34, 34);
+        const wrapped = doc.splitTextToSize(bulletText, contentWidth - 5);
+        wrapped.forEach((wLine, idx) => {
+          ensureSpace(5);
+          if (idx === 0) doc.text('•', margin, y);
+          doc.text(wLine, margin + 5, y);
+          y += 5;
+        });
+      } else if (section.heading === 'SKILLS' && line.includes(':')) {
+        const idx = line.indexOf(':');
+        const label = line.slice(0, idx + 1);
+        const rest = line.slice(idx + 1).trim();
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(17, 17, 17);
+        ensureSpace(5.5);
+        doc.text(label, margin, y);
+        const labelWidth = doc.getTextWidth(`${label} `);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(34, 34, 34);
+        doc.text(rest, margin + labelWidth, y);
+        y += 5.5;
+      } else {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(17, 17, 17);
+        ensureSpace(5.5);
+        doc.text(line, margin, y);
+        y += 5.5;
+      }
+    }
+    y += 3;
+  }
+
+  doc.save(slugifyResumeFilename(parsed.name));
+}
+
+downloadResumeBtn.addEventListener('click', () => {
+  try {
+    generateResumePdf();
+  } catch (err) {
+    setStatus('Could not generate the PDF. Please try again.', true);
+  }
 });
