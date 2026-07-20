@@ -17,8 +17,8 @@
     <div class="hero-inner">
       <p class="eyebrow">Cover Letter Generator</p>
 
-      <h1 class="hero-headline">Write a cover letter that sounds like <span class="accent-word">you</span>.</h1>
-      <p class="hero-subtitle">Paste the job posting, tell Claude the real story — get something that doesn't read like everyone else's application.</p>
+      <h1 class="hero-headline">A cover letter and resume that actually sound like <span class="accent-word">you</span>.</h1>
+      <p class="hero-subtitle">Paste the job posting, tell Claude the real story — get a tailored cover letter and resume, both exportable as real documents, that don't read like a template.</p>
 
       <div class="example-card">
         <p class="example-label">Example</p>
@@ -27,6 +27,8 @@
         <p class="example-after">&ldquo;I noticed a recurring problem in my last role and built a small tool to fix it.&rdquo;</p>
 
         <p class="keyword-preview-label">Also checks your letter against the job posting's key terms &mdash; see what's covered and what's missing.</p>
+        <p class="keyword-preview-label">Generates a matching resume from the same details, with PDF export included.</p>
+        <p class="keyword-preview-label">Upload a resume PDF instead of typing your background &mdash; for either document.</p>
       </div>
 
       <div class="tech-badges">
@@ -34,6 +36,7 @@
         <span class="badge badge-outline">Node.js</span>
         <span class="badge badge-outline">Express</span>
         <span class="badge badge-outline">Rate-limited</span>
+        <span class="badge badge-outline">jsPDF</span>
       </div>
     </div>
   </header>
@@ -81,16 +84,6 @@
         <textarea id="result" rows="16"></textarea>
       </section>
 
-      <section id="resume-section" hidden>
-        <label for="resume-result">Generated resume <span class="optional">(editable)</span></label>
-        <textarea id="resume-result" rows="20"></textarea>
-
-        <p class="resume-preview-label">Formatted preview <span class="optional">(updates as you edit)</span></p>
-        <div id="resume-preview" class="resume-preview"></div>
-
-        <button type="button" id="download-resume-btn" class="btn-secondary" disabled>Download as PDF</button>
-      </section>
-
       <section id="keyword-section" hidden>
         <div class="keyword-header">
           <h2>Keyword Match</h2>
@@ -108,8 +101,26 @@
           </div>
         </div>
       </section>
+
     </div>
   </main>
+
+  <section id="resume-section" class="resume-panel" hidden>
+    <div class="resume-panel-inner">
+      <div class="resume-edit-grid">
+        <div class="resume-edit-col">
+          <label for="resume-result">Generated resume <span class="optional">(editable)</span></label>
+          <textarea id="resume-result" rows="40"></textarea>
+        </div>
+        <div class="resume-edit-col">
+          <p class="resume-preview-label">Formatted preview <span class="optional">(updates as you edit)</span></p>
+          <div id="resume-preview" class="resume-preview"></div>
+        </div>
+      </div>
+
+      <button type="button" id="download-resume-btn" class="btn-secondary" disabled>Download as PDF</button>
+    </div>
+  </section>
 
   <script src="vendor/jspdf.umd.min.js"></script>
   <script src="script.js"></script>

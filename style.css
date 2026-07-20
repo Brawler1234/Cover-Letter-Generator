@@ -239,11 +239,11 @@ body {
 
 /* ================= Layout ================= */
 main {
-  /* Narrower than the hero on purpose — this is the width that actually
-     reads best for form labels, textareas, and body text, not a leftover
-     default. The hero gets more room specifically because display type
-     needs it; functional content doesn't. */
-  max-width: 680px;
+  /* Narrower than the hero on purpose — single-column form fields and body
+     text don't need much width. Widened from 680px once the resume editor
+     went side-by-side (textarea + formatted preview): at 680px each column
+     was cramped enough to force early line-wrapping and excess scrolling. */
+  max-width: 880px;
   margin: 0 auto;
   padding: var(--space-4) 1.5rem var(--space-16);
 }
@@ -541,8 +541,7 @@ input[type="text"]:focus {
   margin-top: var(--space-12);
 }
 
-.output-panel:has(#result-section:not([hidden])),
-.output-panel:has(#resume-section:not([hidden])) {
+.output-panel:has(#result-section:not([hidden])) {
   padding: var(--space-8);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -550,18 +549,39 @@ input[type="text"]:focus {
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
-.output-panel:has(#result-section:not([hidden])):hover,
-.output-panel:has(#resume-section:not([hidden])):hover {
+.output-panel:has(#result-section:not([hidden])):hover {
   transform: translateY(-2px);
   border-color: rgba(99, 102, 241, 0.4);
 }
 
-/* Cover letter and resume outputs stack with their own breathing room when
-   both are visible at once (independent generations, same output panel). */
-#result-section:not([hidden]) ~ #resume-section:not([hidden]) {
+/* The resume editor needs real width for two side-by-side panels — far more
+   than the ~680-880px column the rest of the page (form, hero, cover
+   letter) is sized for. Rather than widen the whole page, this section
+   alone breaks out to near-full page width, capped and centered so it
+   doesn't stretch unreasonably on very wide monitors. It's a sibling of
+   <main> (not nested inside it), sized as 100% of the page's real width —
+   deliberately not 100vw, which runs a few px wider than the actual
+   visible/available width whenever a scrollbar is present, causing a
+   sliver of stray horizontal scroll that `overflow: hidden`/`clip` on
+   html didn't fully suppress in testing. */
+.resume-panel {
+  width: 100%;
+  box-sizing: border-box;
   margin-top: var(--space-8);
-  padding-top: var(--space-8);
-  border-top: 1px solid var(--border);
+}
+
+main:has(#result-section:not([hidden])) + .resume-panel:not([hidden]) {
+  margin-top: var(--space-12);
+}
+
+.resume-panel:not([hidden]) .resume-panel-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: var(--space-8);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
 }
 
 label[for="result"],
@@ -584,9 +604,34 @@ label[for="resume-result"] .optional {
   font-size: 0.78rem;
 }
 
-#result,
-#resume-result {
+#result {
   min-height: 320px;
+}
+
+/* Tall enough that a typical one-page resume mostly fits without needing
+   to scroll inside the box itself — a decisive jump, not a small bump. */
+#resume-result {
+  min-height: 900px;
+}
+
+/* Textarea and formatted preview stack on narrow screens, sit side by side
+   on wider ones — same two-column breakpoint the hero already uses, so the
+   resume editor doesn't force as much scrolling to compare edits against
+   the preview. */
+.resume-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 900px) {
+  .resume-edit-grid {
+    /* minmax(0, 1fr) instead of a bare 1fr — grid items default to a
+       content-based minimum width, and the preview card's content was
+       quietly winning more than its equal share over the plain textarea. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
 }
 
 .resume-preview-label {
@@ -595,7 +640,7 @@ label[for="resume-result"] .optional {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
-  margin: var(--space-6) 0 var(--space-3);
+  margin: 0 0 var(--space-4);
 }
 
 .resume-preview-label .optional {
@@ -612,6 +657,13 @@ label[for="resume-result"] .optional {
   border-radius: var(--radius-md);
   padding: var(--space-8);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  /* Capped and centered in its column so it reads like a realistic document
+     page rather than stretching edge-to-edge once the panel is this wide —
+     the textarea next to it is free to use the full column width instead. */
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 
 .resume-preview-empty {
